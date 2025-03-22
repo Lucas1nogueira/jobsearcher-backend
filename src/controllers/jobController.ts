@@ -67,10 +67,25 @@ export const saveJob: RequestHandler = async (req: Request, res: Response) => {
 
 export const getJobs: RequestHandler = async (req: Request, res: Response) => {
   try {
-    const jobs = await jobService.getJobs();
+    const { keyword, location } = req.query;
+
+    if (keyword && (typeof keyword !== "string" || !keyword.trim())) {
+      return res.status(400).json({ error: "Keyword is required." });
+    }
+
+    if (location && (typeof location !== "string" || !location.trim())) {
+      return res.status(400).json({ error: "Location is required." });
+    }
+
+    const jobs = await jobService.getJobs(
+      keyword as string | undefined,
+      location as string | undefined
+    );
+
     return res.status(200).json(jobs);
   } catch (error) {
     console.error("Error getting jobs:", error);
+
     if (error instanceof Error) {
       return res.status(500).json({ error: error.message });
     } else {

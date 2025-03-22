@@ -5,7 +5,7 @@ export const queries = gql`
     users: [User!]!
     user(id: ID!): User
 
-    jobs: [Job!]!
+    jobs(keyword: String, location: String): [Job!]!
     job(id: ID!): Job
 
     applications: [Application!]!

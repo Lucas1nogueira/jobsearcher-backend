@@ -28,6 +28,11 @@ interface DeleteUserArgs {
   id: number;
 }
 
+interface GetJobsArgs {
+  keyword?: string;
+  location?: string;
+}
+
 interface CreateJobArgs {
   title: string;
   url: string;
@@ -65,74 +70,89 @@ function parseId(id: string | number): number {
 export const resolvers = {
   Query: {
     users: async () => {
-      const result = await userService.getUsers();
+      try {
+        const users = await userService.getUsers();
 
-      if (!result) {
-        throw new Error("Users not found.");
+        return users || [];
+      } catch (error) {
+        console.error("Error getting users:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error getting users."
+        );
       }
-
-      return result;
     },
 
     user: async (_: unknown, { id }: { id: string | number }) => {
-      const numericId = parseId(id);
+      try {
+        const numericId = parseId(id);
 
-      const result = await userService.getUserById(numericId);
+        const user = await userService.getUserById(numericId);
 
-      if (!result) {
-        throw new Error("User not found.");
+        return user || null;
+      } catch (error) {
+        console.error("Error getting user:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error getting user."
+        );
       }
-
-      return result;
     },
 
-    jobs: async () => {
-      const result = await jobService.getJobs();
+    jobs: async (_: unknown, { keyword, location }: GetJobsArgs) => {
+      try {
+        const jobs = await jobService.getJobs(keyword, location);
 
-      if (!result) {
-        throw new Error("Jobs not found.");
+        return jobs || [];
+      } catch (error) {
+        console.error("Error getting jobs:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error getting jobs."
+        );
       }
-
-      return result;
     },
 
     job: async (_: unknown, { id }: { id: string | number }) => {
-      const numericId = parseId(id);
+      try {
+        const numericId = parseId(id);
 
-      const result = await jobService.getJobById(numericId);
+        const job = await jobService.getJobById(numericId);
 
-      if (!result) {
-        throw new Error("Job not found.");
+        return job || null;
+      } catch (error) {
+        console.error("Error getting job:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error getting job."
+        );
       }
-
-      return result;
     },
 
     applications: async () => {
-      const result = await applicationService.getApplications();
+      try {
+        const applications = await applicationService.getApplications();
 
-      if (!result) {
-        throw new Error("Applications not found.");
+        return applications || [];
+      } catch (error) {
+        console.error("Error getting applications:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error getting applications."
+        );
       }
-
-      return result;
     },
 
-    application: async (
-      _: unknown,
-      { applicationId }: { applicationId: string | number }
-    ) => {
-      const numericApplicationId = parseId(applicationId);
+    application: async (_: unknown, { id }: { id: string | number }) => {
+      try {
+        const numericApplicationId = parseId(id);
 
-      const result = await applicationService.getApplicationById(
-        numericApplicationId
-      );
+        const application = await applicationService.getApplicationById(
+          numericApplicationId
+        );
 
-      if (!result) {
-        throw new Error("Application not found.");
+        return application || null;
+      } catch (error) {
+        console.error("Error getting application:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error getting application."
+        );
       }
-
-      return result;
     },
 
     applicationsByUser: async (
@@ -140,49 +160,60 @@ export const resolvers = {
       __: unknown,
       context: AuthContext
     ) => {
-      if (!context.userId) {
-        throw new AuthenticationError("Not authorized.");
+      try {
+        if (!context.userId) {
+          throw new AuthenticationError("Not authorized.");
+        }
+
+        const userId = parseId(context.userId);
+
+        const applications = await applicationService.getApplicationsByUserId(
+          userId
+        );
+
+        return applications || [];
+      } catch (error) {
+        console.error("Error getting applications:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error getting applications."
+        );
       }
-
-      const userId = parseId(context.userId);
-
-      const result = await applicationService.getApplicationsByUserId(userId);
-
-      if (!result) {
-        throw new Error("Applications not found.");
-      }
-
-      return result;
     },
   },
 
   Mutation: {
     signup: async (_: unknown, { name, email, password }: SignupArgs) => {
-      const response = await authService.signup(name, email, password);
+      try {
+        const response = await authService.signup(name, email, password);
 
-      if (!response) {
-        throw new Error("Signup failed.");
+        return {
+          message: "Signup successful.",
+          user: response.user,
+          token: response.token,
+        };
+      } catch (error) {
+        console.error("Signup error:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Signup error."
+        );
       }
-
-      return {
-        message: "Signup successful.",
-        user: response.user,
-        token: response.token,
-      };
     },
 
     login: async (_: unknown, { email, password }: LoginArgs) => {
-      const response = await authService.login(email, password);
+      try {
+        const response = await authService.login(email, password);
 
-      if (!response) {
-        throw new Error("Login failed.");
+        return {
+          message: "Login successful.",
+          user: response.user,
+          token: response.token,
+        };
+      } catch (error) {
+        console.error("Login error:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Login error."
+        );
       }
-
-      return {
-        message: "Login successful.",
-        user: response.user,
-        token: response.token,
-      };
     },
 
     updateUser: async (
@@ -190,20 +221,23 @@ export const resolvers = {
       { id, data }: UpdateUserArgs,
       context: AuthContext
     ) => {
-      const userId = parseId(id);
-      const contextUserId = parseId(context.userId);
+      try {
+        const userId = parseId(id);
+        const contextUserId = parseId(context.userId);
 
-      if (!contextUserId || contextUserId !== userId) {
-        throw new AuthenticationError("Not authorized.");
+        if (!contextUserId || contextUserId !== userId) {
+          throw new AuthenticationError("Not authorized.");
+        }
+
+        const updatedUser = await userService.updateUserById(userId, data);
+
+        return updatedUser;
+      } catch (error) {
+        console.error("Error updating user:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error updating user."
+        );
       }
-
-      const updatedUser = await userService.updateUserById(userId, data);
-
-      if (!updatedUser) {
-        throw new Error("User not found or update failed.");
-      }
-
-      return updatedUser;
     },
 
     deleteUser: async (
@@ -211,56 +245,76 @@ export const resolvers = {
       { id }: DeleteUserArgs,
       context: AuthContext
     ) => {
-      const userId = parseId(id);
-      const contextUserId = parseId(context.userId);
+      try {
+        const userId = parseId(id);
+        const contextUserId = parseId(context.userId);
 
-      if (!contextUserId || contextUserId !== userId) {
-        throw new AuthenticationError("Not authorized.");
+        if (!contextUserId || contextUserId !== userId) {
+          throw new AuthenticationError("Not authorized.");
+        }
+
+        await userService.deleteUserById(userId);
+
+        return { message: "User deleted successfully." };
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error deleting user."
+        );
       }
-
-      await userService.deleteUserById(userId);
-
-      return { message: "User deleted successfully." };
     },
 
     createJob: async (
       _: unknown,
       { title, url, description, company, companyURL, location }: CreateJobArgs
     ) => {
-      const newJob = await jobService.saveJob({
-        title,
-        url,
-        company,
-        companyURL,
-        description,
-        location,
-      });
+      try {
+        const newJob = await jobService.saveJob({
+          title,
+          url,
+          company,
+          companyURL,
+          description,
+          location,
+        });
 
-      if (!newJob) {
-        throw new Error("Could not create job.");
+        return newJob;
+      } catch (error) {
+        console.error("Error creating job:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error creating job."
+        );
       }
-
-      return newJob;
     },
 
     updateJob: async (_: unknown, { id, data }: UpdateJobArgs) => {
-      const jobId = parseId(id);
+      try {
+        const jobId = parseId(id);
 
-      const updatedJob = await jobService.updateJobById(jobId, data);
+        const updatedJob = await jobService.updateJobById(jobId, data);
 
-      if (!updatedJob) {
-        throw new Error("Job not found or update failed.");
+        return updatedJob;
+      } catch (error) {
+        console.error("Error updating job:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error updating job."
+        );
       }
-
-      return updatedJob;
     },
 
     deleteJob: async (_: unknown, { id }: DeleteJobArgs) => {
-      const jobId = parseId(id);
+      try {
+        const jobId = parseId(id);
 
-      await jobService.deleteJobById(jobId);
+        await jobService.deleteJobById(jobId);
 
-      return { message: "Job deleted successfully." };
+        return { message: "Job deleted successfully." };
+      } catch (error) {
+        console.error("Error deleting job:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error deleting job."
+        );
+      }
     },
 
     createApplication: async (
@@ -268,25 +322,28 @@ export const resolvers = {
       { userId, jobId }: CreateApplicationArgs,
       context: AuthContext
     ) => {
-      const numericUserId = parseId(userId);
-      const contextUserId = parseId(context.userId);
+      try {
+        const numericUserId = parseId(userId);
+        const contextUserId = parseId(context.userId);
 
-      if (!contextUserId || contextUserId !== numericUserId) {
-        throw new AuthenticationError("Not authorized.");
+        if (!contextUserId || contextUserId !== numericUserId) {
+          throw new AuthenticationError("Not authorized.");
+        }
+
+        const numericJobId = parseId(jobId);
+
+        const newApplication = await applicationService.saveApplication(
+          numericUserId,
+          numericJobId
+        );
+
+        return newApplication;
+      } catch (error) {
+        console.error("Error creating application:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error creating application."
+        );
       }
-
-      const numericJobId = parseId(jobId);
-
-      const newApplication = await applicationService.saveApplication(
-        numericUserId,
-        numericJobId
-      );
-
-      if (!newApplication) {
-        throw new Error("Failed to create application.");
-      }
-
-      return newApplication;
     },
 
     deleteApplication: async (
@@ -294,20 +351,27 @@ export const resolvers = {
       { id }: { id: number },
       context: AuthContext
     ) => {
-      const contextUserId = parseId(context.userId);
+      try {
+        const contextUserId = parseId(context.userId);
 
-      if (!contextUserId) {
-        throw new AuthenticationError("Not authorized.");
+        if (!contextUserId) {
+          throw new AuthenticationError("Not authorized.");
+        }
+
+        const applicationId = parseId(id);
+
+        await applicationService.deleteApplicationById(
+          contextUserId,
+          applicationId
+        );
+
+        return { message: "Application deleted successfully." };
+      } catch (error) {
+        console.error("Error deleting application:", error);
+        throw new Error(
+          error instanceof Error ? error.message : "Error deleting application."
+        );
       }
-
-      const applicationId = parseId(id);
-
-      await applicationService.deleteApplicationById(
-        contextUserId,
-        applicationId
-      );
-
-      return { message: "Application deleted successfully." };
     },
   },
 };

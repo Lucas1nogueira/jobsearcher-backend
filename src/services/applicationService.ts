@@ -17,10 +17,25 @@ export const saveApplication = async (userId: number, jobId: number) => {
     throw new Error("Job not found.");
   }
 
+  const existingApplication = await prisma.application.findFirst({
+    where: {
+      userId: userId,
+      jobId: jobId,
+    },
+  });
+
+  if (existingApplication) {
+    throw new Error("Application already exists.");
+  }
+
   const newApplication = await prisma.application.create({
     data: {
       userId,
       jobId,
+    },
+    include: {
+      user: true,
+      job: true,
     },
   });
 
@@ -64,7 +79,7 @@ export const getApplicationById = async (applicationId: number) => {
   });
 
   if (!application) {
-    throw new Error("Application not found or access denied.");
+    throw new Error("Application not found.");
   }
 
   return application;
@@ -103,7 +118,7 @@ export const deleteApplicationById = async (
   });
 
   if (!application) {
-    throw new Error("Application not found or access denied.");
+    throw new Error("Application not found.");
   }
 
   await prisma.application.delete({

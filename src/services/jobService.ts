@@ -63,8 +63,32 @@ export const saveJob = async (job: JobData) => {
   return newJob;
 };
 
-export const getJobs = async () => {
-  const jobs = await prisma.job.findMany();
+export const getJobs = async (keyword?: string, location?: string) => {
+  if (keyword && !keyword.trim()) {
+    throw new Error("Keyword cannot be empty.");
+  }
+
+  if (location && !location.trim()) {
+    throw new Error("Location cannot be empty.");
+  }
+
+  const whereConditions: any = {};
+
+  if (keyword) {
+    whereConditions.OR = [
+      { title: { contains: keyword, mode: "insensitive" } },
+      { description: { contains: keyword, mode: "insensitive" } },
+      { company: { contains: keyword, mode: "insensitive" } },
+    ];
+  }
+
+  if (location) {
+    whereConditions.location = { contains: location, mode: "insensitive" };
+  }
+
+  const jobs = await prisma.job.findMany({
+    where: whereConditions,
+  });
 
   return jobs;
 };

@@ -3,7 +3,6 @@ import * as jobController from "../controllers/jobController";
 
 const router = Router();
 
-router.post("/jobs/fetch", jobController.fetchAndSaveJobs);
 router.post("/jobs", jobController.saveJob);
 router.get("/jobs", jobController.getJobs);
 router.get("/jobs/:id", jobController.getJob);

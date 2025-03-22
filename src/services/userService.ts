@@ -2,79 +2,121 @@ import prisma from "../config/prisma";
 import { hashPassword } from "./authService";
 
 export const getUsers = async () => {
-  const users = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-      applications: true,
-    },
-  });
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        applications: true,
+      },
+    });
 
-  return users;
+    return users;
+  } catch (error) {
+    console.log("Error getting users:", error);
+    throw new Error(
+      error instanceof Error ? error.message : "Error getting users."
+    );
+  }
 };
 
-export const getUserById = async (userId: number) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-      applications: true,
-    },
-  });
+export const getUserById = async (id: number) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        applications: true,
+      },
+    });
 
-  if (!user) {
-    throw new Error("User not found.");
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    return user;
+  } catch (error) {
+    console.log(`Error getting user of ID ${id}:`, error);
+    throw new Error(
+      error instanceof Error ? error.message : `Error getting user of ID ${id}.`
+    );
   }
-
-  return user;
 };
 
-export const deleteUserById = async (userId: number) => {
-  const existingUser = await prisma.user.findUnique({
-    where: { id: userId },
-  });
+export const deleteUserById = async (id: number) => {
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+    });
 
-  if (!existingUser) {
-    throw new Error("User not found.");
+    if (!existingUser) {
+      throw new Error("User not found.");
+    }
+
+    await prisma.user.delete({
+      where: { id },
+    });
+  } catch (error) {
+    console.log(`Error deleting user of ID ${id}:`, error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : `Error deleting user of ID ${id}.`
+    );
   }
-
-  await prisma.user.delete({
-    where: { id: userId },
-  });
 };
 
 export const updateUserById = async (
-  userId: number,
+  id: number,
   updateData: Partial<{ name: string; email: string; password: string }>
 ) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
 
-  if (!user) {
-    throw new Error("User not found.");
+    if (!user) {
+      throw new Error("User not found.");
+    }
+
+    if (updateData.email) {
+      const existingEmail = await prisma.user.findUnique({
+        where: { email: updateData.email },
+      });
+
+      if (existingEmail) {
+        throw new Error("Email already in use.");
+      }
+    }
+
+    if (updateData.password) {
+      updateData.password = await hashPassword(updateData.password);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        applications: true,
+      },
+    });
+
+    return updatedUser;
+  } catch (error) {
+    console.log(`Error updating user of ID ${id}:`, error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : `Error updating user of ID ${id}.`
+    );
   }
-
-  if (updateData.password) {
-    updateData.password = await hashPassword(updateData.password);
-  }
-
-  const updatedUser = await prisma.user.update({
-    where: { id: userId },
-    data: updateData,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      createdAt: true,
-      applications: true,
-    },
-  });
-
-  return updatedUser;
 };

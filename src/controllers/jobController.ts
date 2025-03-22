@@ -1,36 +1,5 @@
 import { RequestHandler, Request, Response } from "express";
 import * as jobService from "../services/jobService";
-import * as piloterrService from "../services/piloterrService";
-
-export const fetchAndSaveJobs: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const { keyword } = req.body;
-
-    if (!keyword) {
-      return res.status(400).json({
-        error: "Missing 'keyword' parameter.",
-      });
-    }
-
-    const apiJobs = await piloterrService.fetchJobs(keyword as string);
-
-    const savedJobs = await jobService.saveJobs(apiJobs);
-
-    return res
-      .status(201)
-      .json({ message: "Jobs successfully fetched and saved.", savedJobs });
-  } catch (error) {
-    console.error("Error fetching and saving jobs:", error);
-    if (error instanceof Error) {
-      return res.status(500).json({ error: error.message });
-    } else {
-      return res.status(500).json({ error: "Internal server error." });
-    }
-  }
-};
 
 export const saveJob: RequestHandler = async (req: Request, res: Response) => {
   try {

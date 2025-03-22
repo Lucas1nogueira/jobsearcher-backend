@@ -3,40 +3,44 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const API_URL = "https://piloterr.com/api/v2/linkedin/job/search";
+const API_SEARCH_URL = process.env.PILOTERR_API_SEARCH_URL;
+const API_JOB_INFO_URL = process.env.PILOTERR_API_JOB_INFO_URL;
 const API_KEY = process.env.PILOTERR_API_KEY;
 
-export const fetchJobs = async (
-  keyword: string,
-  experience_level?: string,
-  job_type?: string,
-  when?: string,
-  flexibility?: string,
-  distance?: number,
-  geo_id: string = "92000000",
-  company_id?: string,
-  page: number = 1
-): Promise<any> => {
+export const fetchJobs = async (keyword?: string): Promise<any> => {
   try {
-    const response = await axios.get(API_URL, {
+    const response = await axios.get(API_SEARCH_URL as string, {
       headers: {
         "x-api-key": API_KEY as string,
       },
-      params: {
-        keyword,
-        experience_level,
-        job_type,
-        when,
-        flexibility,
-        distance,
-        geo_id,
-        company_id,
-        page,
-      },
+      params: { keyword },
     });
     return response.data;
   } catch (error) {
-    console.error("Error fetching Piloterr API:", error);
-    throw error;
+    console.error("Error fetching jobs from Piloterr API:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Error fetching jobs from Piloterr API."
+    );
+  }
+};
+
+export const fetchJobDescription = async (url: string): Promise<any> => {
+  try {
+    const response = await axios.get(API_JOB_INFO_URL as string, {
+      headers: {
+        "x-api-key": API_KEY as string,
+      },
+      params: { query: url },
+    });
+    return response.data.job_description;
+  } catch (error) {
+    console.error("Error fetching job info from Piloterr API:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Error fetching job info from Piloterr API."
+    );
   }
 };

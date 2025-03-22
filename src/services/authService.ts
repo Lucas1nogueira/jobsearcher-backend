@@ -19,47 +19,57 @@ const comparePassword = async (password: string, hashedPassword: string) => {
 };
 
 export const signup = async (name: string, email: string, password: string) => {
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-  });
+  try {
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
 
-  if (existingUser) {
-    throw new Error("Email already in use.");
+    if (existingUser) {
+      throw new Error("Email already in use.");
+    }
+
+    const hashedPassword = await hashPassword(password);
+
+    const newUser = await prisma.user.create({
+      data: { name, email, password: hashedPassword },
+    });
+
+    const token = generateToken(newUser.id, newUser.email);
+
+    return {
+      user: newUser,
+      token,
+    };
+  } catch (error) {
+    console.log("Signup error:", error);
+    throw new Error(error instanceof Error ? error.message : "Signup error.");
   }
-
-  const hashedPassword = await hashPassword(password);
-
-  const newUser = await prisma.user.create({
-    data: { name, email, password: hashedPassword },
-  });
-
-  const token = generateToken(newUser.id, newUser.email);
-
-  return {
-    user: newUser,
-    token,
-  };
 };
 
 export const login = async (email: string, password: string) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-  if (!user) {
-    throw new Error("User email not found.");
+    if (!user) {
+      throw new Error("User email not found.");
+    }
+
+    const isPasswordValid = await comparePassword(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new Error("Invalid email or password.");
+    }
+
+    const token = generateToken(user.id, user.email);
+
+    return {
+      user,
+      token,
+    };
+  } catch (error) {
+    console.log("Login error:", error);
+    throw new Error(error instanceof Error ? error.message : "Login error.");
   }
-
-  const isPasswordValid = await comparePassword(password, user.password);
-
-  if (!isPasswordValid) {
-    throw new Error("Invalid email or password.");
-  }
-
-  const token = generateToken(user.id, user.email);
-
-  return {
-    user,
-    token,
-  };
 };

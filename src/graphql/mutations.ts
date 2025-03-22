@@ -5,19 +5,20 @@ export const mutations = gql`
     signup(name: String!, email: String!, password: String!): AuthResponse!
     login(email: String!, password: String!): AuthResponse!
     updateUser(id: ID!, data: UpdateUserInput!): User!
-    deleteUser(id: ID!): Boolean!
+    deleteUser(id: ID!): DeleteResponse!
 
-    createJob(data: CreateJobInput!): Job!
+    createJob(
+      title: String!
+      url: String!
+      description: String!
+      company: String!
+      companyURL: String!
+      location: String!
+    ): Job!
     updateJob(id: ID!, data: UpdateJobInput!): Job!
-    deleteJob(id: ID!): Boolean!
+    deleteJob(id: ID!): DeleteResponse!
 
-    createApplication(data: CreateApplicationInput!): Application!
-    deleteApplication(id: ID!): Boolean!
-  }
-
-  type AuthResponse {
-    success: Boolean!
-    message: String!
-    token: String
+    createApplication(userId: ID!, jobId: ID!): Application!
+    deleteApplication(id: ID!): DeleteResponse!
   }
 `;

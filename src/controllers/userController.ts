@@ -48,41 +48,6 @@ export const getUser: RequestHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteUser: RequestHandler = async (
-  req: AuthenticatedRequest,
-  res: Response
-) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "User ID is required." });
-    }
-
-    const userIdFromToken = req.userId;
-    const userIdFromParams = parseInt(id, 10);
-
-    if (isNaN(userIdFromParams)) {
-      return res.status(400).json({ error: "Invalid user ID format." });
-    }
-
-    if (userIdFromToken !== userIdFromParams) {
-      return res.status(403).json({ error: "Access denied." });
-    }
-
-    await userService.deleteUserById(userIdFromParams);
-
-    return res.status(200).json({ message: "User successfully deleted." });
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    if (error instanceof Error) {
-      return res.status(500).json({ error: error.message });
-    } else {
-      return res.status(500).json({ error: "Internal server error." });
-    }
-  }
-};
-
 export const updateUser: RequestHandler = async (
   req: AuthenticatedRequest,
   res: Response
@@ -126,6 +91,41 @@ export const updateUser: RequestHandler = async (
       .json({ message: "User successfully updated.", updatedUser });
   } catch (error) {
     console.error("Error updating user:", error);
+    if (error instanceof Error) {
+      return res.status(500).json({ error: error.message });
+    } else {
+      return res.status(500).json({ error: "Internal server error." });
+    }
+  }
+};
+
+export const deleteUser: RequestHandler = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "User ID is required." });
+    }
+
+    const userIdFromToken = req.userId;
+    const userIdFromParams = parseInt(id, 10);
+
+    if (isNaN(userIdFromParams)) {
+      return res.status(400).json({ error: "Invalid user ID format." });
+    }
+
+    if (userIdFromToken !== userIdFromParams) {
+      return res.status(403).json({ error: "Access denied." });
+    }
+
+    await userService.deleteUserById(userIdFromParams);
+
+    return res.status(200).json({ message: "User successfully deleted." });
+  } catch (error) {
+    console.error("Error deleting user:", error);
     if (error instanceof Error) {
       return res.status(500).json({ error: error.message });
     } else {

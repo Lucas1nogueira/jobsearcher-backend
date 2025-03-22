@@ -19,10 +19,11 @@ model User {
 model Job {
   id            Int            @id @default(autoincrement())
   title         String
+  url           String
+  description   String
   company       String
   companyURL    String
   location      String
-  description   String
   postedAt      DateTime
   createdAt     DateTime       @default(now())
   applications  Application[]

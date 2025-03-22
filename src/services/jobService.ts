@@ -1,30 +1,41 @@
 import prisma from "../config/prisma";
 
-interface JobData {
+interface JobAPIData {
   title: string;
+  url: string;
+  description: string;
   company_name: string;
   company_url: string;
   location: string;
-  url: string;
   list_date: string;
 }
 
-export const saveJobs = async (jobs: JobData[]) => {
+interface JobData {
+  title: string;
+  url: string;
+  description: string;
+  company: string;
+  companyURL: string;
+  location: string;
+}
+
+export const saveJobs = async (jobs: JobAPIData[]) => {
   const savedJobs = [];
 
   for (const job of jobs) {
     const existingJob = await prisma.job.findFirst({
-      where: { description: job.url },
+      where: { url: job.url },
     });
 
     if (!existingJob) {
       const newJob = await prisma.job.create({
         data: {
           title: job.title,
+          url: job.url,
+          description: "",
           company: job.company_name,
           companyURL: job.company_url,
           location: job.location,
-          description: job.url,
           postedAt: new Date(job.list_date),
         },
       });
@@ -34,6 +45,22 @@ export const saveJobs = async (jobs: JobData[]) => {
   }
 
   return savedJobs;
+};
+
+export const saveJob = async (job: JobData) => {
+  const newJob = await prisma.job.create({
+    data: {
+      title: job.title,
+      url: job.url,
+      description: job.description,
+      company: job.company,
+      companyURL: job.companyURL,
+      location: job.location,
+      postedAt: new Date(Date.now()),
+    },
+  });
+
+  return newJob;
 };
 
 export const getJobs = async () => {
@@ -68,14 +95,7 @@ export const deleteJobById = async (id: number) => {
 
 export const updateJobById = async (
   id: number,
-  updateData: Partial<{
-    title: string;
-    company: string;
-    companyURL: string;
-    location: string;
-    description: string;
-    postedAt: Date;
-  }>
+  updateData: Partial<JobData>
 ) => {
   const job = await prisma.job.findUnique({
     where: { id },

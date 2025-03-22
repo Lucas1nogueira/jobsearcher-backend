@@ -13,10 +13,11 @@ CREATE TABLE "User" (
 CREATE TABLE "Job" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
     "company" TEXT NOT NULL,
     "companyURL" TEXT NOT NULL,
     "location" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
     "postedAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

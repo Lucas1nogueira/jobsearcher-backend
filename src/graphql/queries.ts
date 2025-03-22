@@ -11,6 +11,6 @@ export const queries = gql`
     applications: [Application!]!
     application(id: ID!): Application
 
-    applicationsByUser(userId: ID!): [Application!]!
+    applicationsByUser: [Application!]!
   }
 `;

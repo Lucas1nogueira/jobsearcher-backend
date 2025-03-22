@@ -25,20 +25,21 @@ const apolloServer = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ req }: { req: AuthRequest }) => {
-    const token = req.headers.authorization || "";
+    const token = req.headers["authorization"]?.split(" ")[1];
 
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-        const userId = (decoded as { userId: number }).userId;
-
-        return { userId };
-      } catch (error) {
-        throw new Error("Invalid or expired token.");
-      }
+    if (!token) {
+      return {};
     }
 
-    return {};
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+      const userId = (decoded as { userId: number }).userId;
+
+      return { userId };
+    } catch (error) {
+      console.error("Invalid or expired token.");
+      return {};
+    }
   },
 });
 

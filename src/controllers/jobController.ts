@@ -32,6 +32,39 @@ export const fetchAndSaveJobs: RequestHandler = async (
   }
 };
 
+export const saveJob: RequestHandler = async (req: Request, res: Response) => {
+  try {
+    const { title, url, description, company, companyURL, location } = req.body;
+
+    if (
+      !title ||
+      !url ||
+      !description ||
+      !company ||
+      !companyURL ||
+      !location
+    ) {
+      return res.status(400).json({
+        error:
+          "Title, URL, description, company, companyURL and location are required.",
+      });
+    }
+
+    const jobData = { title, url, description, company, companyURL, location };
+
+    const job = await jobService.saveJob(jobData);
+
+    return res.status(201).json({ message: "Job created successfully.", job });
+  } catch (error) {
+    console.error("Error creating job:", error);
+    if (error instanceof Error) {
+      return res.status(500).json({ error: error.message });
+    } else {
+      return res.status(500).json({ error: "Internal server error." });
+    }
+  }
+};
+
 export const getJobs: RequestHandler = async (req: Request, res: Response) => {
   try {
     const jobs = await jobService.getJobs();
@@ -65,36 +98,6 @@ export const getJob: RequestHandler = async (req: Request, res: Response) => {
     return res.status(200).json(job);
   } catch (error) {
     console.error("Error fetching job:", error);
-    if (error instanceof Error) {
-      return res.status(500).json({ error: error.message });
-    } else {
-      return res.status(500).json({ error: "Internal server error." });
-    }
-  }
-};
-
-export const deleteJob: RequestHandler = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "Job ID is required." });
-    }
-
-    const jobId = parseInt(id, 10);
-
-    if (isNaN(jobId)) {
-      return res.status(400).json({ error: "Invalid job ID format." });
-    }
-
-    await jobService.deleteJobById(jobId);
-
-    return res.status(200).json({ message: "Job successfully deleted." });
-  } catch (error) {
-    console.error("Error deleting job:", error);
     if (error instanceof Error) {
       return res.status(500).json({ error: error.message });
     } else {
@@ -137,6 +140,36 @@ export const updateJob: RequestHandler = async (
       .json({ message: "Job successfully updated.", updatedJob });
   } catch (error) {
     console.error("Error updating job:", error);
+    if (error instanceof Error) {
+      return res.status(500).json({ error: error.message });
+    } else {
+      return res.status(500).json({ error: "Internal server error." });
+    }
+  }
+};
+
+export const deleteJob: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: "Job ID is required." });
+    }
+
+    const jobId = parseInt(id, 10);
+
+    if (isNaN(jobId)) {
+      return res.status(400).json({ error: "Invalid job ID format." });
+    }
+
+    await jobService.deleteJobById(jobId);
+
+    return res.status(200).json({ message: "Job successfully deleted." });
+  } catch (error) {
+    console.error("Error deleting job:", error);
     if (error instanceof Error) {
       return res.status(500).json({ error: error.message });
     } else {

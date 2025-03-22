@@ -16,10 +16,11 @@ export const typeDefs = gql`
   type Job {
     id: Int!
     title: String!
+    url: String!
+    description: String!
     company: String!
     companyURL: String!
     location: String!
-    description: String!
     postedAt: DateTime!
     createdAt: DateTime!
     applications: [Application!]!
@@ -44,27 +45,23 @@ export const typeDefs = gql`
     password: String
   }
 
-  input CreateJobInput {
-    title: String!
-    company: String!
-    companyURL: String!
-    location: String!
-    description: String!
-    postedAt: DateTime!
-  }
-
   input UpdateJobInput {
     title: String
+    url: String
+    description: String
     company: String
     companyURL: String
     location: String
-    description: String
-    postedAt: DateTime
   }
 
-  input CreateApplicationInput {
-    userId: Int!
-    jobId: Int!
+  type AuthResponse {
+    message: String!
+    user: User
+    token: String
+  }
+
+  type DeleteResponse {
+    message: String!
   }
 
   ${queries}

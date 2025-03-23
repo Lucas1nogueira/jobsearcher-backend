@@ -35,10 +35,6 @@ export const getUserById = async (id: number) => {
       },
     });
 
-    if (!user) {
-      throw new Error("User not found.");
-    }
-
     return user;
   } catch (error) {
     console.log(`Error getting user of ID ${id}:`, error);
@@ -53,10 +49,6 @@ export const deleteUserById = async (id: number) => {
     const existingUser = await prisma.user.findUnique({
       where: { id },
     });
-
-    if (!existingUser) {
-      throw new Error("User not found.");
-    }
 
     await prisma.user.delete({
       where: { id },
@@ -79,10 +71,6 @@ export const updateUserById = async (
     const user = await prisma.user.findUnique({
       where: { id },
     });
-
-    if (!user) {
-      throw new Error("User not found.");
-    }
 
     if (updateData.email) {
       const existingEmail = await prisma.user.findUnique({

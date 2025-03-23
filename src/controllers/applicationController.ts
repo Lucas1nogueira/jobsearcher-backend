@@ -17,7 +17,19 @@ export const saveApplication = async (
       return res.status(401).json({ error: "User not authenticated." });
     }
 
+    if (!jobId || typeof jobId !== "number") {
+      return res
+        .status(400)
+        .json({ error: "Job ID is required in a valid format." });
+    }
+
     const application = await applicationService.saveApplication(userId, jobId);
+
+    if (!application) {
+      return res
+        .status(401)
+        .json({ error: "User ID and job ID are required." });
+    }
 
     return res.status(201).json({
       message: "Application successfully saved.",
@@ -66,6 +78,10 @@ export const getApplication = async (req: Request, res: Response) => {
       parsedApplicationId
     );
 
+    if (!application) {
+      return res.status(404).json({ error: "Application not found." });
+    }
+
     return res.status(200).json(application);
   } catch (error) {
     console.error("Error fetching application:", error);
@@ -92,6 +108,10 @@ export const getApplicationsByUser = async (
       userId
     );
 
+    if (!applications) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
     return res.status(200).json(applications);
   } catch (error) {
     console.error("Error getting user applications:", error);
@@ -115,17 +135,20 @@ export const deleteApplication = async (
       return res.status(401).json({ error: "User not authenticated." });
     }
 
-    if (!applicationId) {
-      return res.status(400).json({ error: "Application ID required." });
-    }
-
     const parsedApplicationId = parseInt(applicationId, 10);
 
     if (isNaN(parsedApplicationId)) {
       return res.status(400).json({ error: "Invalid application ID format." });
     }
 
-    await applicationService.deleteApplicationById(userId, parsedApplicationId);
+    const deletedApplication = await applicationService.deleteApplicationById(
+      userId,
+      parsedApplicationId
+    );
+
+    if (!deletedApplication) {
+      return res.status(404).json({ error: "Application not found." });
+    }
 
     return res
       .status(200)

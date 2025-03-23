@@ -186,6 +186,10 @@ export const resolvers = {
       try {
         const response = await authService.signup(name, email, password);
 
+        if (!response) {
+          throw new Error("Email already in use.");
+        }
+
         return {
           message: "Signup successful.",
           user: response.user,
@@ -202,6 +206,10 @@ export const resolvers = {
     login: async (_: unknown, { email, password }: LoginArgs) => {
       try {
         const response = await authService.login(email, password);
+
+        if (!response) {
+          throw new Error("User email not found.");
+        }
 
         return {
           message: "Login successful.",

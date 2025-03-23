@@ -25,7 +25,7 @@ export const signup = async (name: string, email: string, password: string) => {
     });
 
     if (existingUser) {
-      throw new Error("Email already in use.");
+      return null;
     }
 
     const hashedPassword = await hashPassword(password);
@@ -53,7 +53,7 @@ export const login = async (email: string, password: string) => {
     });
 
     if (!user) {
-      throw new Error("User email not found.");
+      return null;
     }
 
     const isPasswordValid = await comparePassword(password, user.password);

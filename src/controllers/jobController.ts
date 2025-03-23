@@ -149,7 +149,11 @@ export const deleteJob: RequestHandler = async (
       return res.status(400).json({ error: "Invalid job ID format." });
     }
 
-    await jobService.deleteJobById(jobId);
+    const deletedJob = await jobService.deleteJobById(jobId);
+
+    if (!deletedJob) {
+      return res.status(404).json({ error: "Job not found." });
+    }
 
     return res.status(200).json({ message: "Job successfully deleted." });
   } catch (error) {

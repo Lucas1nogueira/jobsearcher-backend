@@ -136,7 +136,7 @@ export const getJobById = async (id: number) => {
     });
 
     if (!job) {
-      throw new Error("Job not found.");
+      return null;
     }
 
     if (job.description === "") {
@@ -168,10 +168,12 @@ export const deleteJobById = async (id: number) => {
     });
 
     if (!job) {
-      throw new Error("Job not found.");
+      return null;
     }
 
-    await prisma.job.delete({ where: { id } });
+    const deletedJob = await prisma.job.delete({ where: { id } });
+
+    return deletedJob;
   } catch (error) {
     console.log(`Error deleting job of ID ${id}:`, error);
     throw new Error(
@@ -190,7 +192,7 @@ export const updateJobById = async (
     });
 
     if (!job) {
-      throw new Error("Job not found.");
+      return null;
     }
 
     const updatedJob = await prisma.job.update({

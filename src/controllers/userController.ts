@@ -37,6 +37,10 @@ export const getUser: RequestHandler = async (req: Request, res: Response) => {
 
     const user = await userService.getUserById(userId);
 
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
     return res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -69,6 +73,12 @@ export const updateUser: RequestHandler = async (
 
     if (userIdFromToken !== userIdFromParams) {
       return res.status(403).json({ error: "Access denied." });
+    }
+
+    const user = await userService.getUserById(userIdFromParams);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
     }
 
     const updateData: Partial<{
@@ -119,6 +129,12 @@ export const deleteUser: RequestHandler = async (
 
     if (userIdFromToken !== userIdFromParams) {
       return res.status(403).json({ error: "Access denied." });
+    }
+
+    const user = await userService.getUserById(userIdFromParams);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
     }
 
     await userService.deleteUserById(userIdFromParams);

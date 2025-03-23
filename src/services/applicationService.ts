@@ -7,7 +7,7 @@ export const saveApplication = async (userId: number, jobId: number) => {
     });
 
     if (!user) {
-      throw new Error("User not found.");
+      return null;
     }
 
     const job = await prisma.job.findUnique({
@@ -15,7 +15,7 @@ export const saveApplication = async (userId: number, jobId: number) => {
     });
 
     if (!job) {
-      throw new Error("Job not found.");
+      return null;
     }
 
     const existingApplication = await prisma.application.findFirst({
@@ -94,7 +94,7 @@ export const getApplicationById = async (id: number) => {
     });
 
     if (!application) {
-      throw new Error("Application not found.");
+      return null;
     }
 
     return application;
@@ -110,6 +110,16 @@ export const getApplicationById = async (id: number) => {
 
 export const getApplicationsByUserId = async (userId: number) => {
   try {
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!existingUser) {
+      return null;
+    }
+
     const applications = await prisma.application.findMany({
       where: {
         userId,
@@ -151,12 +161,14 @@ export const deleteApplicationById = async (
     });
 
     if (!application) {
-      throw new Error("Application not found.");
+      return null;
     }
 
-    await prisma.application.delete({
+    const deletedApplication = await prisma.application.delete({
       where: { id: applicationId },
     });
+
+    return deletedApplication;
   } catch (error) {
     console.log(`Error deleting application of ID ${applicationId}:`, error);
     throw new Error(

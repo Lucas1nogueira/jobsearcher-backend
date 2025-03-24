@@ -26,9 +26,9 @@ export const saveApplication = async (
     const application = await applicationService.saveApplication(userId, jobId);
 
     if (!application) {
-      return res
-        .status(401)
-        .json({ error: "User ID and job ID are required." });
+      return res.status(401).json({
+        error: "Could not find user or job, or application already exists.",
+      });
     }
 
     return res.status(201).json({
@@ -63,11 +63,6 @@ export const getApplications = async (req: Request, res: Response) => {
 export const getApplication = async (req: Request, res: Response) => {
   try {
     const applicationId = req.params.id;
-
-    if (!applicationId) {
-      return res.status(400).json({ error: "Application ID required." });
-    }
-
     const parsedApplicationId = parseInt(applicationId, 10);
 
     if (isNaN(parsedApplicationId)) {
@@ -107,10 +102,6 @@ export const getApplicationsByUser = async (
     const applications = await applicationService.getApplicationsByUserId(
       userId
     );
-
-    if (!applications) {
-      return res.status(404).json({ error: "User not found." });
-    }
 
     return res.status(200).json(applications);
   } catch (error) {

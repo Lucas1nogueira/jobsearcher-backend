@@ -84,11 +84,15 @@ export const resolvers = {
 
     user: async (_: unknown, { id }: { id: string | number }) => {
       try {
-        const numericId = parseId(id);
+        const userId = parseId(id);
 
-        const user = await userService.getUserById(numericId);
+        if (isNaN(userId)) {
+          throw new Error("Invalid user ID format.");
+        }
 
-        return user || null;
+        const user = await userService.getUserById(userId);
+
+        return user;
       } catch (error) {
         console.error("Error getting user:", error);
         throw new Error(
@@ -114,9 +118,17 @@ export const resolvers = {
       try {
         const numericId = parseId(id);
 
+        if (isNaN(numericId)) {
+          throw new Error("Invalid job ID format.");
+        }
+
         const job = await jobService.getJobById(numericId);
 
-        return job || null;
+        if (!job) {
+          throw new Error("Job not found.");
+        }
+
+        return job;
       } catch (error) {
         console.error("Error getting job:", error);
         throw new Error(
@@ -142,11 +154,19 @@ export const resolvers = {
       try {
         const numericApplicationId = parseId(id);
 
+        if (isNaN(numericApplicationId)) {
+          throw new Error("Invalid application ID format.");
+        }
+
         const application = await applicationService.getApplicationById(
           numericApplicationId
         );
 
-        return application || null;
+        if (!application) {
+          throw new Error("Application not found.");
+        }
+
+        return application;
       } catch (error) {
         console.error("Error getting application:", error);
         throw new Error(
@@ -233,8 +253,16 @@ export const resolvers = {
         const userId = parseId(id);
         const contextUserId = parseId(context.userId);
 
+        if (isNaN(userId)) {
+          throw new Error("Invalid user ID format.");
+        }
+
         if (!contextUserId || contextUserId !== userId) {
           throw new AuthenticationError("Not authorized.");
+        }
+
+        if (Object.keys(data).length === 0) {
+          throw new Error("No update data provided.");
         }
 
         const updatedUser = await userService.updateUserById(userId, data);
@@ -256,6 +284,10 @@ export const resolvers = {
       try {
         const userId = parseId(id);
         const contextUserId = parseId(context.userId);
+
+        if (isNaN(userId)) {
+          throw new Error("Invalid user ID format.");
+        }
 
         if (!contextUserId || contextUserId !== userId) {
           throw new AuthenticationError("Not authorized.");
@@ -299,7 +331,19 @@ export const resolvers = {
       try {
         const jobId = parseId(id);
 
+        if (isNaN(jobId)) {
+          throw new Error("Invalid job ID format.");
+        }
+
+        if (Object.keys(data).length === 0) {
+          throw new Error("No update data provided.");
+        }
+
         const updatedJob = await jobService.updateJobById(jobId, data);
+
+        if (!updatedJob) {
+          throw new Error("Job not found.");
+        }
 
         return updatedJob;
       } catch (error) {
@@ -314,7 +358,15 @@ export const resolvers = {
       try {
         const jobId = parseId(id);
 
-        await jobService.deleteJobById(jobId);
+        if (isNaN(jobId)) {
+          throw new Error("Invalid job ID format.");
+        }
+
+        const deletedJob = await jobService.deleteJobById(jobId);
+
+        if (!deletedJob) {
+          throw new Error("Job not found.");
+        }
 
         return { message: "Job deleted successfully." };
       } catch (error) {
@@ -340,10 +392,20 @@ export const resolvers = {
 
         const numericJobId = parseId(jobId);
 
+        if (isNaN(numericJobId)) {
+          throw new Error("Job ID is required in a valid format.");
+        }
+
         const newApplication = await applicationService.saveApplication(
           numericUserId,
           numericJobId
         );
+
+        if (!newApplication) {
+          throw new Error(
+            "Could not find user or job, or application already exists."
+          );
+        }
 
         return newApplication;
       } catch (error) {
@@ -368,10 +430,19 @@ export const resolvers = {
 
         const applicationId = parseId(id);
 
-        await applicationService.deleteApplicationById(
-          contextUserId,
-          applicationId
-        );
+        if (isNaN(applicationId)) {
+          throw new Error("Invalid application ID format.");
+        }
+
+        const deletedApplication =
+          await applicationService.deleteApplicationById(
+            contextUserId,
+            applicationId
+          );
+
+        if (!deletedApplication) {
+          throw new Error("Application not found.");
+        }
 
         return { message: "Application deleted successfully." };
       } catch (error) {

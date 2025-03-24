@@ -66,11 +66,6 @@ export const getJobs: RequestHandler = async (req: Request, res: Response) => {
 export const getJob: RequestHandler = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "Job ID is required." });
-    }
-
     const jobId = parseInt(id, 10);
 
     if (isNaN(jobId)) {
@@ -78,6 +73,10 @@ export const getJob: RequestHandler = async (req: Request, res: Response) => {
     }
 
     const job = await jobService.getJobById(jobId);
+
+    if (!job) {
+      return res.status(404).json({ error: "Job not found." });
+    }
 
     return res.status(200).json(job);
   } catch (error) {
@@ -96,11 +95,6 @@ export const updateJob: RequestHandler = async (
 ) => {
   try {
     const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "Job ID is required." });
-    }
-
     const jobId = parseInt(id, 10);
 
     if (isNaN(jobId)) {
@@ -138,11 +132,6 @@ export const deleteJob: RequestHandler = async (
 ) => {
   try {
     const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "Job ID is required." });
-    }
-
     const jobId = parseInt(id, 10);
 
     if (isNaN(jobId)) {

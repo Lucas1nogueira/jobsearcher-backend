@@ -26,7 +26,7 @@ export const saveApplication = async (userId: number, jobId: number) => {
     });
 
     if (existingApplication) {
-      throw new Error("Application already exists.");
+      return null;
     }
 
     const newApplication = await prisma.application.create({

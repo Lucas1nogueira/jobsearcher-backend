@@ -24,11 +24,6 @@ export const getUsers: RequestHandler = async (req: Request, res: Response) => {
 export const getUser: RequestHandler = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "User ID is required." });
-    }
-
     const userId = parseInt(id, 10);
 
     if (isNaN(userId)) {
@@ -59,11 +54,6 @@ export const updateUser: RequestHandler = async (
   try {
     const { id } = req.params;
     const { name, email, password } = req.body;
-
-    if (!id) {
-      return res.status(400).json({ error: "User ID is required." });
-    }
-
     const userIdFromToken = req.userId;
     const userIdFromParams = parseInt(id, 10);
 
@@ -75,12 +65,11 @@ export const updateUser: RequestHandler = async (
       return res.status(403).json({ error: "Access denied." });
     }
 
-    const user = await userService.getUserById(userIdFromParams);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found." });
+    if (!name && !email && !password) {
+      return res.status(400).json({ error: "No update data provided." });
     }
 
+    const user = await userService.getUserById(userIdFromParams);
     const updateData: Partial<{
       name: string;
       email: string;
@@ -115,11 +104,6 @@ export const deleteUser: RequestHandler = async (
 ) => {
   try {
     const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ error: "User ID is required." });
-    }
-
     const userIdFromToken = req.userId;
     const userIdFromParams = parseInt(id, 10);
 
@@ -132,10 +116,6 @@ export const deleteUser: RequestHandler = async (
     }
 
     const user = await userService.getUserById(userIdFromParams);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found." });
-    }
 
     await userService.deleteUserById(userIdFromParams);
 
